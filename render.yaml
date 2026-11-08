@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: upi-qr-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: WORKER_SHARED_SECRET
+        generateValue: true
+      - key: FAMPAY_OFFICIAL_SENDERS
+        value: no-reply@famapp.in
+      - key: ALLOW_SIGNUP
+        value: "false"
