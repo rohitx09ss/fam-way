@@ -1,0 +1,93 @@
+@charset "utf-8";
+
+.chart-wrapper { position: relative; height: 320px; width: 100%; margin-top: 14px; }
+
+.chart-time-pills { display: inline-flex; background: rgb(241, 245, 249); border: 1px solid rgb(226, 232, 240); border-radius: 8px; padding: 3px; gap: 2px; }
+
+.time-pill { background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; padding: 4px 12px; font-size: 12px; font-weight: 600; color: rgb(100, 116, 139); border-radius: 6px; cursor: pointer; transition: 0.15s; font-family: Poppins, sans-serif; }
+
+.time-pill:hover { color: rgb(15, 23, 42); }
+
+.time-pill.active { background: rgb(255, 255, 255); color: rgb(37, 99, 235); box-shadow: rgba(0, 0, 0, 0.08) 0px 1px 3px; }
+
+.chart-toggle-btn { display: inline-flex; align-items: center; gap: 6px; background: rgb(255, 255, 255); border: 1px solid rgb(226, 232, 240); padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; color: rgb(100, 116, 139); cursor: pointer; transition: 0.15s; font-family: Poppins, sans-serif; }
+
+.chart-toggle-btn:hover { border-color: rgb(203, 213, 225); color: rgb(15, 23, 42); }
+
+.chart-toggle-btn.active { background: rgb(239, 246, 255); border-color: rgb(191, 219, 254); color: rgb(29, 78, 216); }
+
+.chart-toggle-btn .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+.chart-toggle-btn .rev-dot { background: rgb(37, 99, 235); }
+
+.chart-toggle-btn .req-dot { background: rgb(147, 51, 234); }
+
+.table-responsive { width: 100%; overflow-x: auto; }
+
+.tx-table { width: 100%; border-collapse: separate; border-spacing: 0px; min-width: 800px; }
+
+.tx-table th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--color-ink-mute); border-bottom: 1px solid var(--color-hairline); background: rgb(248, 250, 252); white-space: nowrap; }
+
+.tx-table td { padding: 14px 16px; font-size: 13px; color: var(--color-ink); border-bottom: 1px solid var(--color-hairline); vertical-align: top; }
+
+.tx-table th:first-child, .tx-table td:first-child { padding-left: 24px; }
+
+.tx-table th:last-child, .tx-table td:last-child { padding-right: 24px; }
+
+.tx-table tr:hover td { background: rgb(248, 250, 252); }
+
+.tx-table tr:last-child td { border-bottom-width: medium; border-bottom-style: none; border-bottom-color: currentcolor; }
+
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
+
+.status-badge i, .status-badge svg { width: 12px; height: 12px; }
+
+.status-success { background: rgb(240, 253, 244); color: rgb(22, 101, 52); border-color: rgb(187, 247, 208); }
+
+.status-pending { background: rgb(254, 252, 232); color: rgb(133, 77, 14); border-color: rgb(254, 240, 138); }
+
+.status-failed { background: rgb(254, 242, 242); color: rgb(153, 27, 27); border-color: rgb(254, 202, 202); }
+
+.status-expired { background: rgb(248, 250, 252); color: rgb(71, 85, 105); border-color: rgb(226, 232, 240); }
+
+.status-expired { background: rgb(248, 250, 252); color: rgb(71, 85, 105); border-color: rgb(226, 232, 240); }
+
+.status-expired { background: rgb(248, 250, 252); color: rgb(71, 85, 105); border-color: rgb(226, 232, 240); }
+
+.tutorial-card { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: stretch; }
+
+@media (max-width: 768px) {
+  .tutorial-card { grid-template-columns: 1fr; gap: 16px; }
+}
+
+.video-carousel-container { position: relative; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--color-hairline); height: 100%; min-height: 240px; display: flex; flex-direction: column; background: rgb(9, 13, 22); }
+
+.video-slider-track { display: flex; width: 200%; height: 100%; transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1); }
+
+.video-slide-item { width: 50%; position: relative; flex-shrink: 0; display: flex; flex-direction: column; }
+
+.video-slide-aspect { position: relative; padding-bottom: 56.25%; height: 0px; flex-grow: 1; }
+
+.video-slide-aspect iframe { position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; border: 0px; }
+
+.video-slider-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.25); color: rgb(255, 255, 255); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: 0.2s; backdrop-filter: blur(6px); box-shadow: rgba(0, 0, 0, 0.35) 0px 4px 12px; }
+
+.video-slider-btn:hover { background: rgb(37, 99, 235); border-color: rgb(59, 130, 246); transform: translateY(-50%) scale(1.08); color: rgb(255, 255, 255); }
+
+.video-slider-btn.prev-btn { left: 12px; }
+
+.video-slider-btn.next-btn { right: 12px; }
+
+.video-badge-pill { position: absolute; top: 12px; left: 12px; z-index: 9; background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(6px); border: 1px solid rgba(255, 255, 255, 0.15); color: rgb(248, 250, 252); font-size: 11px; font-weight: 600; letter-spacing: 0.3px; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; pointer-events: none; }
+
+.video-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: rgb(239, 68, 68); box-shadow: rgb(239, 68, 68) 0px 0px 8px; }
+
+.video-slider-footer { position: absolute; bottom: 12px; left: 0px; right: 0px; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 10; pointer-events: none; }
+
+.video-slider-dot { width: 8px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.45); cursor: pointer; transition: 0.25s; pointer-events: auto; }
+
+.video-slider-dot.active { width: 24px; background: rgb(56, 189, 248); box-shadow: rgba(56, 189, 248, 0.6) 0px 0px 8px; }
+
+.stat-card { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s; }
+
+.stat-card:hover { transform: translateY(-2px); box-shadow: rgba(0, 0, 0, 0.06) 0px 8px 20px -4px; border-color: rgb(203, 213, 225); }

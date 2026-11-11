@@ -27,4 +27,6 @@ services:
       - key: FAMPAY_OFFICIAL_SENDERS
         value: no-reply@famapp.in
       - key: ALLOW_SIGNUP
-        value: "false"
+        value: "true"
+      - key: PUBLIC_PAY_BASE
+        sync: false

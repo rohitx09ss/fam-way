@@ -8,7 +8,8 @@ from sqlalchemy import select
 from .audit import audit
 from .config import settings
 from .models import EO, PS, EmailEvent, PaymentRequest, utcnow
-from .verification import VerificationResult, get_adapter
+from .webhooks import enqueue as enqueue_webhook
+from .verification import NullAdapter, VerificationResult, get_adapter
 
 log = logging.getLogger(__name__)
 OPEN = (PS.CREATED, PS.WAITING)
@@ -30,6 +31,7 @@ class Notification:
     payer_name: str | None = None
     utr: str | None = None
     auth_note: str = ""
+    account_id: int | None = None  # which receiving account's inbox the email came from (None = primary)
 
 
 def expire_due(db, now: datetime | None = None) -> int:
@@ -43,14 +45,21 @@ def expire_due(db, now: datetime | None = None) -> int:
     return len(rows)
 
 
-def run_verification(db, p: PaymentRequest, actor: str = "system") -> None:
+AUTO_NOTE = "Auto-verified from an authenticated email from FamPay's official sender (not bank-confirmed)"
+
+
+def run_verification(db, p: PaymentRequest, actor: str = "system", email_trusted: bool = False) -> None:
     p.status = PS.VERIFYING
     db.flush()
+    adapter = get_adapter()
     try:
-        res = get_adapter().verify(amount_paise=p.amount_paise, transaction_id=p.transaction_id or "",
+        res = adapter.verify(amount_paise=p.amount_paise, transaction_id=p.transaction_id or "",
                                    reference=p.reference, timestamp=p.detected_at or utcnow())
     except Exception as exc:  # provider down etc. -> stay pending, never auto-verify
         res = VerificationResult("UNAVAILABLE", f"Verification adapter error: {exc}")
+    # Email-trust only when no independent source is configured; a real adapter always has the last word.
+    if res.status == "UNAVAILABLE" and email_trusted and isinstance(adapter, NullAdapter):
+        res = VerificationResult("CONFIRMED", AUTO_NOTE)
     if res.status == "CONFIRMED":
         p.status, p.verified_at = PS.VERIFIED, utcnow()
     elif res.status == "REJECTED":
@@ -59,6 +68,8 @@ def run_verification(db, p: PaymentRequest, actor: str = "system") -> None:
         p.status = PS.DETECTED
     p.verification_note = res.note
     audit(db, actor, f"payment.{p.status.lower()}", f"payment:{p.id}", res.note)
+    if p.status == PS.VERIFIED:
+        enqueue_webhook(db, p)
 
 
 def apply_match(db, p: PaymentRequest, ev: EmailEvent, how: str, actor: str = "system") -> None:
@@ -71,7 +82,9 @@ def apply_match(db, p: PaymentRequest, ev: EmailEvent, how: str, actor: str = "s
     ev.detail = how
     audit(db, actor, "payment.detected", f"payment:{p.id}", f"txn={ev.transaction_id} via {how}")
     db.flush()
-    run_verification(db, p, actor)
+    trusted = (actor == "system" and ev.auth_ok and settings.require_email_auth
+               and settings.auto_verify_email)
+    run_verification(db, p, actor, trusted)
 
 
 def process_notification(db, n: Notification) -> EmailEvent:
@@ -85,7 +98,7 @@ def process_notification(db, n: Notification) -> EmailEvent:
                     subject=(n.subject or "")[:500], amount_paise=n.amount_paise,
                     transaction_id=n.transaction_id, payment_reference=n.payment_reference,
                     txn_time=n.timestamp, auth_ok=n.auth_ok, outcome=EO.UNMATCHED,
-                    payer_name=n.payer_name, utr=n.utr)
+                    payer_name=n.payer_name, utr=n.utr, account_id=n.account_id)
 
     def finish(outcome: str, detail: str, payment: PaymentRequest | None = None) -> EmailEvent:
         ev.outcome, ev.detail = outcome, detail
@@ -119,6 +132,8 @@ def process_notification(db, n: Notification) -> EmailEvent:
             PaymentRequest.reference == n.payment_reference, PaymentRequest.merchant_id == n.merchant_id))
         if not p:
             return finish(EO.UNMATCHED, "Reference not found for this merchant")
+        if p.account_id != n.account_id:
+            return finish(EO.UNMATCHED, "Reference belongs to a different receiving account")
         if p.amount_paise != n.amount_paise:
             return finish(EO.MISMATCH, f"Paid {n.amount_paise/100:.2f} but requested {p.amount_paise/100:.2f}", p)
         if p.transaction_id or p.status in BUSY:
@@ -138,6 +153,7 @@ def process_notification(db, n: Notification) -> EmailEvent:
     cands = db.scalars(select(PaymentRequest).where(
         PaymentRequest.merchant_id == n.merchant_id,
         PaymentRequest.amount_paise == n.amount_paise,
+        PaymentRequest.account_id.is_(None) if n.account_id is None else PaymentRequest.account_id == n.account_id,
         PaymentRequest.transaction_id.is_(None),
         PaymentRequest.status.in_(OPEN + (PS.EXPIRED,)),
         PaymentRequest.created_at <= ts + grace,
@@ -157,6 +173,7 @@ def process_notification(db, n: Notification) -> EmailEvent:
     late = db.scalar(select(PaymentRequest).where(
         PaymentRequest.merchant_id == n.merchant_id,
         PaymentRequest.amount_paise == n.amount_paise,
+        PaymentRequest.account_id.is_(None) if n.account_id is None else PaymentRequest.account_id == n.account_id,
         PaymentRequest.transaction_id.is_(None),
         PaymentRequest.expires_at < ts - grace,
         PaymentRequest.expires_at >= ts - timedelta(hours=24)))
@@ -184,6 +201,7 @@ def manual_decision(db, p: PaymentRequest, approve: bool, actor: str) -> None:
     if approve:
         p.status, p.verified_at = PS.VERIFIED, utcnow()
         p.verification_note = f"Confirmed manually by {actor} against bank records"
+        enqueue_webhook(db, p)
     else:
         p.status = PS.FAILED
         p.verification_note = f"Rejected manually by {actor}"

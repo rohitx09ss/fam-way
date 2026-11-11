@@ -6,7 +6,8 @@ right QR, and shows the result in the dashboard.
 
 ```
 backend/         FastAPI + SQLAlchemy  -> Render
-merchant-panel/  React (Vite)          -> Vercel project 1
+merchant-panel/  Static multi-page UI (Vite) -> Vercel project 1
+                 dashboard, transactions, payment links, API keys, webhooks, integrations, docs, public checkout /pay/<id>
 admin-panel/     React (Vite)          -> Vercel project 2
 Database         Neon Postgres
 ```
@@ -19,7 +20,10 @@ A FamPay email is an **alert, not proof of settlement**. A matched email moves a
 1. a verification adapter (`backend/app/verification.py`, e.g. your bank/payment-provider API) confirms it, or
 2. the merchant presses "Mark as verified" after checking their bank app (audited).
 
-With `VERIFICATION_ADAPTER=none` (default) nothing is ever auto-verified.
+With `AUTO_VERIFY_EMAIL=true` (default) a payment is marked VERIFIED automatically when the email is from the official sender,
+passes aligned DKIM/SPF, and matched unambiguously. This is email-trust, **not bank confirmation**, and the note says so.
+Ambiguous, late, duplicate and mismatched payments are never auto-verified. Set `AUTO_VERIFY_EMAIL=false` to require manual confirmation,
+and a configured bank adapter (`VERIFICATION_ADAPTER=http`) always overrides email-trust.
 
 ## Matching rules (`backend/app/matching.py`)
 
@@ -81,3 +85,30 @@ Set `VITE_API_URL=http://localhost:8000` in the panel `.env` files.
 - Separate admin/merchant login endpoints and role-checked JWTs; login throttling (per process).
 - Audit log records logins, settings changes, payment state changes and manual decisions.
 - Before production: rotate all default secrets, add Alembic migrations, and move login throttling to Redis if you scale out.
+
+
+## Payment links, API and webhooks
+- **Payment link:** merchant creates one (amount, optional customer, expiry 1 min to 1 day) and shares `https://<merchant-site>/pay/<id>`.
+  Each visit gets a fresh 5-minute QR; no second QR is created while a payment is awaiting verification. Link becomes *Paid* when verified.
+- **API:** merchants create a key (shown once, stored hashed) and call `POST /api/v1/orders`, `GET /api/v1/orders/{id}` with `Authorization: Bearer <key>`.
+- **Webhooks:** `payment.verified` is POSTed to the merchant's endpoints, signed with `X-Signature: sha256=HMAC(secret, body)`, retried 5 times,
+  private/internal URLs blocked. Delivery logs are in the dashboard.
+- **Sign-up** is open (`ALLOW_SIGNUP=true`); the admin panel can disable any merchant.
+- Set `PUBLIC_PAY_BASE` (or put the merchant site first in `FRONTEND_ORIGINS`) so generated links point at the right site.
+- Vercel: the merchant-panel project is now a multi-page Vite site (framework preset Vite, build `vite build`, output `dist`). Env: `VITE_API_URL`, optional `VITE_BRAND_NAME`.
+
+
+## More merchant features
+- **Multi-Accounts (up to 5):** primary account (Integrations page) plus standby FamPay wallets with their own Gmail. One account is *active*
+  and new QR codes / payment links pay into it; switch in one click. Every connected inbox is watched, and an email is only matched against
+  requests created for **that same account**, so wallets never get mixed up.
+- **QR branding:** merchants upload a logo (Profile) that is placed in the centre of their QR codes (error correction is raised so it still scans).
+- **Payment alerts:** sound + browser notification when a payment is confirmed while a dashboard tab is open (Profile > Payment alerts).
+- **Support link:** shown on the customer checkout page.
+- **Split by payment method:** on the Transactions page (UPI only).
+- New columns and tables are added automatically on start.
+
+## Login page
+`merchant-panel/login.html` is the FAMWAY sign-in / create-account page (flip animation). "Keep me signed in" keeps the session after the browser
+closes; unchecked, it ends with the tab. Sign-up asks for full name, email and password. There is no email service, so "Forgot?" tells the merchant
+to ask the admin, who can reset a password from the admin panel. Two-factor login is not included.

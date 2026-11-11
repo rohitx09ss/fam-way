@@ -11,7 +11,7 @@ from ..deps import merchant_user
 from ..gmail_client import test_connection
 from ..matching import assign_event, manual_decision
 from ..models import PS, EmailEvent, MerchantSettings, PaymentRequest, utcnow
-from ..qr import build_upi_uri
+from ..services import create_payment_request, resolve_active
 from ..schemas import AssignIn, PaymentCreate, SettingsIn, event_out, payment_out
 from ..security import decrypt_secret, encrypt_secret
 
@@ -70,21 +70,14 @@ def test_imap(user=Depends(merchant_user), db=Depends(get_db)):
 
 @router.post("/payments", status_code=201)
 def create_payment(body: PaymentCreate, user=Depends(merchant_user), db=Depends(get_db)):
-    s = _settings(db, user)
-    if not s.upi_id:
-        raise HTTPException(400, "Add your UPI ID in Settings before creating a QR")
+    try:
+        s, account_id, upi = resolve_active(db, user.id)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
     paise = int((body.amount * 100).to_integral_value())
-    now = utcnow()
-    p = PaymentRequest(
-        merchant_id=user.id, reference="PAY" + secrets.token_hex(5).upper(), amount_paise=paise,
-        status=PS.CREATED, created_at=now, expires_at=now + timedelta(seconds=cfg.qr_expiry_seconds))
-    p.upi_uri = build_upi_uri(s.upi_id, s.store_name, paise, p.reference)
-    db.add(p)
-    db.flush()
-    p.status = PS.WAITING
-    audit(db, user.email, "payment.created", f"payment:{p.id}", f"{p.reference} {paise/100:.2f} INR")
+    p = create_payment_request(db, user.id, s, paise, cfg.qr_expiry_seconds, user.email, account_id=account_id, upi_id=upi)
     db.commit()
-    return payment_out(p, with_qr=True)
+    return payment_out(p, with_qr=True, logo=user.avatar_b64)
 
 
 @router.get("/payments")
@@ -105,7 +98,7 @@ def _own_payment(db, user, pid: int) -> PaymentRequest:
 
 @router.get("/payments/{pid}")
 def get_payment(pid: int, user=Depends(merchant_user), db=Depends(get_db)):
-    return payment_out(_own_payment(db, user, pid), with_qr=True)
+    return payment_out(_own_payment(db, user, pid), with_qr=True, logo=user.avatar_b64)
 
 
 @router.post("/payments/{pid}/confirm")

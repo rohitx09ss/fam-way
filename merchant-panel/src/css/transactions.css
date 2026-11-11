@@ -1,0 +1,74 @@
+@charset "utf-8";
+
+.rzp-tab { display: inline-block; padding: 8px 12px; font-size: 13px; font-weight: 500; color: var(--color-ink-mute); background: transparent; border-width: medium medium 2px; border-style: none none solid; border-color: currentcolor currentcolor transparent; border-image: none; cursor: pointer; transition: 0.2s; }
+
+.rzp-tab:hover { color: var(--color-ink); }
+
+.rzp-tab.active { color: var(--color-primary); border-bottom: 2px solid var(--color-primary); font-weight: 600; }
+
+.table-responsive { width: 100%; overflow-x: auto; }
+
+.tx-table { width: 100%; border-collapse: separate; border-spacing: 0px; min-width: 800px; }
+
+.tx-table th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--color-ink-mute); border-bottom: 1px solid var(--color-hairline); background: rgb(248, 250, 252); white-space: nowrap; }
+
+.tx-table td { padding: 14px 16px; font-size: 13px; color: var(--color-ink); border-bottom: 1px solid var(--color-hairline); vertical-align: top; }
+
+.tx-table th:first-child, .tx-table td:first-child { padding-left: 24px; }
+
+.tx-table th:last-child, .tx-table td:last-child { padding-right: 24px; }
+
+.tx-table tr:hover td { background: rgb(248, 250, 252); }
+
+.tx-table tr:last-child td { border-bottom-width: medium; border-bottom-style: none; border-bottom-color: currentcolor; }
+
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
+
+.status-badge i, .status-badge svg { width: 12px; height: 12px; }
+
+.status-success { background: rgb(240, 253, 244); color: rgb(22, 101, 52); border-color: rgb(187, 247, 208); }
+
+.status-pending { background: rgb(254, 252, 232); color: rgb(133, 77, 14); border-color: rgb(254, 240, 138); }
+
+.status-failed { background: rgb(254, 242, 242); color: rgb(153, 27, 27); border-color: rgb(254, 202, 202); }
+
+.status-expired { background: rgb(248, 250, 252); color: rgb(71, 85, 105); border-color: rgb(226, 232, 240); }
+
+.search-box { position: relative; display: inline-flex; align-items: center; }
+
+.search-box i, .search-box svg { position: absolute; left: 12px; color: var(--color-ink-mute); }
+
+.search-box input { padding: 6px 12px 6px 32px; border: 1px solid var(--color-hairline); border-radius: 6px; font-size: 13px; outline: none; transition: border-color 0.2s; min-width: 200px; }
+
+.search-box input:focus { border-color: var(--color-primary); }
+
+.pagination-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px; }
+
+.pagination-btn { padding: 6px 12px; border: 1px solid var(--color-hairline); background: transparent; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--color-ink); }
+
+.pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pagination-btn:not(:disabled):hover { background: var(--surface-bg); }
+
+.card-header-filters { padding: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.rzp-top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+.rzp-mid-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+
+.rzp-top-grid .card, .rzp-mid-grid .card { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s; }
+
+.rzp-top-grid .card:hover, .rzp-mid-grid .card:hover { transform: translateY(-2px); box-shadow: rgba(0, 0, 0, 0.05) 0px 8px 20px -4px; border-color: rgb(203, 213, 225); }
+
+@media (max-width: 768px) {
+  .rzp-top-grid { grid-template-columns: 1fr; }
+  .rzp-mid-grid { grid-template-columns: 1fr; }
+}
+
+.main-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--color-hairline); margin-bottom: 16px; }
+
+.main-tab { font-size: 14px; font-weight: 600; color: var(--color-ink-mute); padding-bottom: 8px; border-bottom: 2px solid transparent; cursor: pointer; }
+
+.main-tab.active { color: var(--color-ink); border-bottom: 2px solid var(--color-ink); }
+
+.filter-dropdown { padding: 6px 12px; font-size: 13px; border: 1px solid var(--color-hairline); border-radius: 6px; background: transparent; color: var(--color-ink); cursor: pointer; font-weight: 500; }

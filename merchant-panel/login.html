@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FAMWAY · Login & Sign Up</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            touch-action: pan-x pan-y;
+            -webkit-text-size-adjust: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            z-index: 1;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+
+        .auth-card {
+            background: #ffffff;
+            border: 1px solid #eef0f4;
+            border-radius: 24px;
+            padding: 2.2rem 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0,0,0,0.03);
+            width: 100%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 1;
+            transform: translate(-50%, -50%) translateX(0) scale(1);
+            filter: blur(0px);
+        }
+
+        .auth-card.signup-card {
+            opacity: 0;
+            transform: translate(-50%, -50%) translateX(-40px) scale(0.95);
+            filter: blur(8px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container.flipped .login-card {
+            opacity: 0;
+            transform: translate(-50%, -50%) translateX(40px) scale(0.95);
+            filter: blur(8px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container.flipped .signup-card {
+            opacity: 1;
+            transform: translate(-50%, -50%) translateX(0) scale(1);
+            filter: blur(0px);
+            pointer-events: auto;
+            z-index: 2;
+        }
+
+        .store-name {
+            font-size: 2.2rem; font-weight: 800; color: #111827;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            margin-bottom: 1.2rem; letter-spacing: -0.03em;
+        }
+        .store-name .highlight { color: #3b82f6; }
+        .heading { font-size: 1.5rem; font-weight: 800; color: #111827; text-align: center; margin-bottom: 0.3rem; letter-spacing: -0.02em; }
+        .subhead { font-size: 0.95rem; color: #6b7280; text-align: center; margin-bottom: 1.6rem; }
+
+        .input-group { margin-bottom: 1.1rem; position: relative; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+        .input-group label { font-size: 0.9rem; font-weight: 600; color: #1f2937; }
+        .forgot-link { font-size: 0.85rem; font-weight: 600; color: #3b82f6; text-decoration: none; }
+        .forgot-link:hover { text-decoration: underline; }
+
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper input {
+            width: 100%; padding: 0.85rem 1rem; background: #ffffff;
+            border: 1.5px solid #d1d5db; border-radius: 12px; font-size: 0.95rem; color: #111827;
+            font-family: 'Inter', sans-serif; transition: all 0.2s; outline: none;
+        }
+        .input-wrapper input::placeholder { color: #9ca3af; }
+        .input-wrapper input:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); }
+
+        .toggle-password { position: absolute; right: 1rem; background: transparent; border: none; color: #6b7280; font-size: 1.1rem; cursor: pointer; }
+        .toggle-password:hover { color: #111827; }
+
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 1.4rem; cursor: pointer; }
+        .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: #3b82f6; cursor: pointer; }
+        .checkbox-group label { font-size: 0.9rem; color: #374151; cursor: pointer; }
+
+        .action-btn {
+            width: 100%; padding: 0.9rem; background: #2563eb; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: 600; color: #ffffff; font-family: 'Inter', sans-serif; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 1.4rem;
+        }
+        .action-btn:hover { background: #1d4ed8; }
+        .action-btn:active { transform: scale(0.97); }
+        .action-btn:disabled { opacity: .7; cursor: default; }
+
+        .switch-section { text-align: center; font-size: 0.95rem; color: #6b7280; }
+        .switch-section a { color: #2563eb; text-decoration: none; font-weight: 700; cursor: pointer; }
+        .switch-section a:hover { text-decoration: underline; }
+
+        .temp-feedback { margin-bottom: 1rem; padding: 0.7rem; border-radius: 8px; font-size: 0.85rem; text-align: center; display: none; }
+        .temp-feedback.error { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; display: block; }
+        .temp-feedback.success { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; display: block; }
+
+        @media (max-width: 380px) {
+            .auth-card { padding: 1.8rem 1.2rem; }
+            .store-name { font-size: 1.9rem; }
+            .heading { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="mainContainer">
+
+        <!-- ================= LOGIN CARD ================= -->
+        <div class="auth-card login-card">
+            <div class="store-name">FAM<span class="highlight">WAY</span></div>
+            <h1 class="heading">Sign In</h1>
+            <p class="subhead">Welcome back to FAMWAY</p>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="loginEmail">Email address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="loginEmail" placeholder="you@example.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="label-row">
+                        <label for="loginPassword">Password</label>
+                        <a href="#" class="forgot-link" id="forgotLink">Forgot?</a>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+                        <button type="button" class="toggle-password" data-toggle="loginPassword" aria-label="Show password">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="keepSigned" checked>
+                    <label for="keepSigned">Keep me signed in</label>
+                </div>
+
+                <div id="loginFeedback" class="temp-feedback"></div>
+
+                <button type="submit" class="action-btn" id="loginBtn">Sign In &rarr;</button>
+            </form>
+
+            <div class="switch-section">
+                Don't have an account? <a data-switch>Create one free</a>
+            </div>
+        </div>
+
+        <!-- ================= SIGNUP CARD ================= -->
+        <div class="auth-card signup-card">
+            <div class="store-name">FAM<span class="highlight">WAY</span></div>
+            <h1 class="heading">Create Account</h1>
+            <p class="subhead">Join FAMWAY today</p>
+
+            <form id="signupForm">
+                <div class="input-group">
+                    <label for="signupName">Full Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="signupName" placeholder="Subhash Sharma" required maxlength="120" autocomplete="name">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="signupEmail">Email address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="signupEmail" placeholder="you@example.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="signupPassword">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="signupPassword" placeholder="Create password (min 8 characters)" required minlength="8" autocomplete="new-password">
+                        <button type="button" class="toggle-password" data-toggle="signupPassword" aria-label="Show password">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="signupFeedback" class="temp-feedback"></div>
+
+                <button type="submit" class="action-btn" id="signupBtn">Create Account &rarr;</button>
+            </form>
+
+            <div class="switch-section">
+                Already have an account? <a data-switch>Sign In</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="/src/pages/login.js"></script>
+</body>
+</html>

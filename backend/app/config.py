@@ -10,7 +10,8 @@ class Settings(BaseSettings):
     encryption_key: str = ""
     admin_email: str = "admin@example.com"
     admin_password: str = "change-me-now"
-    allow_signup: bool = False
+    allow_signup: bool = True  # merchants self-register; no admin approval
+    public_pay_base: str = ""  # merchant site URL used in pay links; defaults to first FRONTEND_ORIGINS entry
     frontend_origins: str = "http://localhost:5173,http://localhost:5174"
     worker_shared_secret: str = "change-me-too"
 
@@ -18,6 +19,9 @@ class Settings(BaseSettings):
     match_grace_seconds: int = 30
     allow_unique_amount_match: bool = True
     require_email_auth: bool = True
+    # Auto-verify a match when the email is from the official sender, passed aligned DKIM/SPF,
+    # and matched unambiguously. Not bank-confirmed; ignored if a real verification adapter is configured.
+    auto_verify_email: bool = True
     # Comma-separated FamPay official sender address(es). Only these are ever processed.
     fampay_official_senders: str = "no-reply@famapp.in"
     imap_poll_seconds: int = 20

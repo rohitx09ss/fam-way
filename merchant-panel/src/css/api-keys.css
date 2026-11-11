@@ -1,0 +1,69 @@
+@charset "utf-8";
+
+.apikeys-wrap { max-width: 900px; margin: 0px; }
+
+.key-info-banner { background: rgb(248, 250, 252); border: 1px solid rgb(226, 232, 240); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+.key-card { background: rgb(255, 255, 255); border: 1px solid var(--color-hairline); border-radius: 14px; padding: 20px 24px; margin-bottom: 20px; box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+
+.key-card:hover { border-color: rgb(203, 213, 225); box-shadow: rgba(0, 0, 0, 0.04) 0px 4px 12px; }
+
+.key-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px; }
+
+.key-title-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.key-name { font-weight: 700; font-size: 15px; color: var(--color-ink); display: inline-flex; align-items: center; gap: 6px; }
+
+.key-created-date { font-size: 12px; color: var(--color-ink-mute); }
+
+.key-header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.key-secret-box { background: rgb(248, 250, 252); border: 1px solid rgb(226, 232, 240); border-radius: 10px; padding: 12px 16px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13.5px; color: var(--color-ink); display: flex; align-items: center; justify-content: space-between; gap: 12px; overflow: hidden; }
+
+.key-secret-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.5px; font-weight: 600; color: rgb(30, 41, 59); flex-grow: 1; user-select: all; }
+
+.key-type-pill { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: rgb(226, 232, 240); color: rgb(71, 85, 105); flex-shrink: 0; letter-spacing: 0px; font-family: inherit; }
+
+.status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+.status-success { background: rgb(236, 253, 245); color: rgb(4, 120, 87); border: 1px solid rgb(167, 243, 208); }
+
+.status-counter { background: rgb(239, 246, 255); color: rgb(29, 78, 216); border: 1px solid rgb(191, 219, 254); }
+
+.status-lastused { background: rgb(248, 250, 252); color: rgb(100, 116, 139); border: 1px solid rgb(226, 232, 240); }
+
+.traffic-time-btn { border-width: medium; border-style: none; border-color: currentcolor; border-image: none; background: transparent; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--color-ink-mute); border-radius: 6px; cursor: pointer; transition: 0.15s; font-family: inherit; }
+
+.traffic-time-btn:hover { color: var(--color-ink); }
+
+.traffic-time-btn.active { background: rgb(255, 255, 255); color: var(--color-primary); box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 2px; }
+
+.modal-overlay { position: fixed; inset: 0px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 16px; }
+
+.modal-box { background: rgb(255, 255, 255); border-radius: 16px; max-width: 480px; width: 100%; box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px; overflow: hidden; animation: 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0s 1 normal none running modalPop; }
+
+@keyframes modalPop { 
+  0% { opacity: 0; transform: scale(0.96) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0px); }
+}
+
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--color-hairline); display: flex; justify-content: space-between; align-items: center; }
+
+.modal-body { padding: 24px; }
+
+.modal-footer { padding: 16px 24px; background: rgb(248, 250, 252); border-top: 1px solid var(--color-hairline); display: flex; justify-content: flex-end; gap: 10px; }
+
+@media (max-width: 480px) {
+  .modal-overlay { padding: 12px; }
+  .modal-box { border-radius: 16px; max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }
+  .modal-header { padding: 16px 18px; }
+  .modal-body { padding: 18px; }
+  .modal-footer { padding: 12px 18px; flex-direction: column-reverse; gap: 8px; }
+  .modal-footer button { width: 100%; min-height: 42px; }
+}
+
+@media (max-width: 768px) {
+  .key-card { padding: 16px; }
+  .key-header-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .key-header-actions button:last-child { grid-column: span 2; }
+}

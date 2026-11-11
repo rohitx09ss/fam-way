@@ -49,10 +49,11 @@ def merchant_register(body: RegisterIn, db=Depends(get_db)):
         raise HTTPException(403, "Sign-up is closed. Ask the admin to create your account.")
     if db.scalar(select(User.id).where(User.email == body.email.lower())):
         raise HTTPException(409, "Email already registered")
-    user = User(email=body.email.lower(), password_hash=hash_password(body.password), role="merchant")
+    user = User(email=body.email.lower(), password_hash=hash_password(body.password), role="merchant",
+                name=(body.name or "").strip() or None)
     db.add(user)
     db.flush()
-    db.add(MerchantSettings(user_id=user.id, store_name=body.store_name))
+    db.add(MerchantSettings(user_id=user.id, store_name=(body.store_name or body.name or "").strip()))
     audit(db, user.email, "merchant.registered", f"user:{user.id}")
     db.commit()
     return TokenOut(access_token=create_token(user.id, "merchant"), role="merchant", email=user.email)

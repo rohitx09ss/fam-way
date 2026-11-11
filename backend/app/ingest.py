@@ -9,7 +9,7 @@ from .models import EmailEvent
 log = logging.getLogger(__name__)
 
 
-def handle_raw_email(db, merchant_id: int, allowed_senders: set[str], raw: bytes):
+def handle_raw_email(db, merchant_id: int, allowed_senders: set[str], raw: bytes, account_id: int | None = None):
     """Parse one raw email and feed it to the matching engine. Returns event or None."""
     parsed = parse_email(raw)
     if parsed.from_addr not in allowed_senders:
@@ -24,4 +24,4 @@ def handle_raw_email(db, merchant_id: int, allowed_senders: set[str], raw: bytes
         timestamp=parsed.timestamp, payment_reference=parsed.payment_reference,
         message_id=parsed.message_id, sender=parsed.from_addr, subject=parsed.subject,
         auth_ok=parsed.auth_ok, payer_name=parsed.payer_name, utr=parsed.utr,
-        auth_note=parsed.auth_note))
+        auth_note=parsed.auth_note, account_id=account_id))

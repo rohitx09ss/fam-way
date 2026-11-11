@@ -16,6 +16,7 @@ class LoginIn(BaseModel):
 class RegisterIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=200)
+    name: str = Field(default="", max_length=120)
     store_name: str = Field(default="", max_length=120)
 
 
@@ -73,7 +74,7 @@ class UpdateMerchantIn(BaseModel):
     new_password: str | None = Field(default=None, min_length=8, max_length=200)
 
 
-def payment_out(p: PaymentRequest, with_qr: bool = False) -> dict:
+def payment_out(p: PaymentRequest, with_qr: bool = False, logo: str | None = None) -> dict:
     d = {
         "id": p.id, "reference": p.reference, "merchant_id": p.merchant_id,
         "amount": p.amount_paise / 100, "status": p.status,
@@ -81,12 +82,12 @@ def payment_out(p: PaymentRequest, with_qr: bool = False) -> dict:
         "created_at": p.created_at.isoformat(), "expires_at": p.expires_at.isoformat(),
         "detected_at": p.detected_at.isoformat() if p.detected_at else None,
         "verified_at": p.verified_at.isoformat() if p.verified_at else None,
-        "transaction_id": p.transaction_id, "payer_name": p.payer_name, "utr": p.utr,
+        "transaction_id": p.transaction_id, "payer_name": p.payer_name, "utr": p.utr, "customer_name": p.customer_name,
         "verification_note": p.verification_note,
         "server_time": utcnow().isoformat(),
     }
     if with_qr:
-        d["qr_data_url"] = qr_data_url(p.upi_uri)
+        d["qr_data_url"] = qr_data_url(p.upi_uri, logo)
     return d
 
 

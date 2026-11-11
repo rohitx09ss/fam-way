@@ -128,3 +128,46 @@ def test_manual_confirm_only_from_detected(db, make_payment):
     process_notification(db, notif(ref=p.reference))
     matching.manual_decision(db, p, True, "m@x.com")
     assert p.status == PS.VERIFIED
+
+
+def test_auto_verify_authenticated_unambiguous_match(db, make_payment, monkeypatch):
+    monkeypatch.setattr(matching.settings, "auto_verify_email", True)
+    p = make_payment(500)
+    process_notification(db, notif(ref=p.reference))
+    assert p.status == PS.VERIFIED and "not bank-confirmed" in p.verification_note
+
+
+def test_auto_verify_works_for_unique_amount_without_reference(db, make_payment, monkeypatch):
+    monkeypatch.setattr(matching.settings, "auto_verify_email", True)
+    p = make_payment(1)
+    process_notification(db, notif(amount=1))
+    assert p.status == PS.VERIFIED
+
+
+def test_auto_verify_never_applies_to_ambiguous_or_late(db, make_payment, monkeypatch):
+    monkeypatch.setattr(matching.settings, "auto_verify_email", True)
+    a, b = make_payment(500), make_payment(500)
+    process_notification(db, notif())
+    assert a.status == PS.WAITING and b.status == PS.WAITING
+    late = make_payment(300, age_s=600, status=PS.EXPIRED)
+    process_notification(db, notif(amount=300, txn="TXN000000009", ref=late.reference))
+    assert late.status == PS.REVIEW
+
+
+def test_auto_verify_needs_authenticated_email(db, make_payment, monkeypatch):
+    monkeypatch.setattr(matching.settings, "auto_verify_email", True)
+    monkeypatch.setattr(matching.settings, "require_email_auth", False)
+    p = make_payment(500)
+    process_notification(db, notif(ref=p.reference, auth=False))
+    assert p.status == PS.DETECTED
+
+
+def test_real_adapter_overrides_email_trust(db, make_payment, monkeypatch):
+    monkeypatch.setattr(matching.settings, "auto_verify_email", True)
+    class No:
+        def verify(self, **_):
+            return VerificationResult("REJECTED", "bank says no")
+    monkeypatch.setattr(matching, "get_adapter", lambda: No())
+    p = make_payment(500)
+    process_notification(db, notif(ref=p.reference))
+    assert p.status == PS.FAILED

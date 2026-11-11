@@ -9,9 +9,9 @@ from sqlalchemy import inspect, select, text
 from .config import settings
 from .db import Base, SessionLocal, engine
 from .models import User
-from .routers import admin, auth, merchant, verify
+from .routers import admin, api_v1, auth, dashboard, merchant, public, verify
 from .security import hash_password
-from .worker import email_loop, expiry_loop
+from .worker import email_loop, expiry_loop, webhook_loop
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("app")
@@ -20,8 +20,12 @@ log = logging.getLogger("app")
 def ensure_columns() -> None:
     """create_all never alters existing tables; add columns introduced later (Postgres + SQLite)."""
     wanted = {
-        "payment_requests": {"payer_name": "VARCHAR(120)", "utr": "VARCHAR(64)"},
-        "email_events": {"payer_name": "VARCHAR(120)", "utr": "VARCHAR(64)"},
+        "payment_requests": {"payer_name": "VARCHAR(120)", "utr": "VARCHAR(64)",
+                             "customer_name": "VARCHAR(100)", "link_id": "INTEGER", "account_id": "INTEGER"},
+        "email_events": {"payer_name": "VARCHAR(120)", "utr": "VARCHAR(64)", "account_id": "INTEGER"},
+        "users": {"name": "VARCHAR(120)", "phone": "VARCHAR(20)", "webhook_secret": "VARCHAR(80)",
+                  "support_link": "VARCHAR(300)", "avatar_b64": "TEXT"},
+        "merchant_settings": {"active_account_id": "INTEGER"},
     }
     insp = inspect(engine)
     with engine.begin() as conn:
@@ -49,7 +53,8 @@ async def lifespan(app: FastAPI):
     bootstrap_admin()
     tasks = []
     if settings.run_workers:
-        tasks = [asyncio.create_task(expiry_loop()), asyncio.create_task(email_loop())]
+        tasks = [asyncio.create_task(expiry_loop()), asyncio.create_task(email_loop()),
+                 asyncio.create_task(webhook_loop())]
     yield
     for t in tasks:
         t.cancel()
@@ -61,7 +66,7 @@ app.add_middleware(
     allow_origins=[o.strip() for o in settings.frontend_origins.split(",") if o.strip()],
     allow_methods=["*"], allow_headers=["*"],
 )
-for r in (auth.router, merchant.router, admin.router, verify.router):
+for r in (auth.router, merchant.router, dashboard.router, public.router, api_v1.router, admin.router, verify.router):
     app.include_router(r)
 
 

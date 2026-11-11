@@ -10,6 +10,12 @@ from app import models  # noqa: F401  (register tables)
 from app.models import PS, PaymentRequest, User, utcnow
 
 
+@pytest.fixture(autouse=True)
+def _auto_verify_off_by_default(monkeypatch):
+    from app.config import settings
+    monkeypatch.setattr(settings, "auto_verify_email", False)
+
+
 @pytest.fixture()
 def db():
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)

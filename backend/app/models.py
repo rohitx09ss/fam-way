@@ -78,6 +78,11 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), index=True)  # admin | merchant
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    webhook_secret: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    support_link: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    avatar_b64: Mapped[str | None] = mapped_column(Text, nullable=True)  # small PNG shown inside QR codes
 
 
 class MerchantSettings(Base):
@@ -92,6 +97,7 @@ class MerchantSettings(Base):
     is_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     last_poll_at: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    active_account_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # None = primary account
 
 
 class PaymentRequest(Base):
@@ -111,6 +117,9 @@ class PaymentRequest(Base):
     payer_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     utr: Mapped[str | None] = mapped_column(String(64), nullable=True)
     verification_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    customer_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    link_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    account_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)  # None = primary
 
 
 class EmailEvent(Base):
@@ -129,6 +138,7 @@ class EmailEvent(Base):
     payment_reference: Mapped[str | None] = mapped_column(String(32), nullable=True)
     payer_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     utr: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    account_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     txn_time: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
     auth_ok: Mapped[bool] = mapped_column(Boolean, default=False)
     outcome: Mapped[str] = mapped_column(String(30), index=True)
@@ -144,4 +154,83 @@ class AuditLog(Base):
     action: Mapped[str] = mapped_column(String(60), index=True)
     entity: Mapped[str] = mapped_column(String(80), default="")
     detail: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+
+class PaymentLink(Base):
+    """A shareable checkout link. Each visit gets its own short-lived QR session (PaymentRequest)."""
+    __tablename__ = "payment_links"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    slug: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    merchant_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    amount_paise: Mapped[int] = mapped_column(Integer)
+    customer_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    order_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    redirect_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    source: Mapped[str] = mapped_column(String(20), default="dashboard")  # dashboard | api
+    expires_at: Mapped[datetime] = mapped_column(UtcDateTime)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    merchant_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(60), default="Default Key")
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    last4: Mapped[str] = mapped_column(String(4))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    request_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_used_at: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+
+class ApiUsage(Base):
+    __tablename__ = "api_usage"
+    __table_args__ = (UniqueConstraint("merchant_id", "day", name="uq_usage_day"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    merchant_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    day: Mapped[str] = mapped_column(String(10))  # YYYY-MM-DD (IST)
+    count: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class WebhookEndpoint(Base):
+    __tablename__ = "webhook_endpoints"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    merchant_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    url: Mapped[str] = mapped_column(String(500))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+
+class WebhookDelivery(Base):
+    __tablename__ = "webhook_deliveries"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    merchant_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    endpoint_id: Mapped[int] = mapped_column(ForeignKey("webhook_endpoints.id"), index=True)
+    event: Mapped[str] = mapped_column(String(40))
+    payload: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(10), default="PENDING", index=True)  # PENDING | SUCCESS | FAILED
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    last_attempt_at: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
+    response_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    response_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+
+class ReceivingAccount(Base):
+    """A standby FamPay wallet + Gmail inbox. The primary account lives in MerchantSettings."""
+    __tablename__ = "receiving_accounts"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    merchant_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    label: Mapped[str] = mapped_column(String(60), default="")
+    upi_id: Mapped[str] = mapped_column(String(120))
+    gmail_address: Mapped[str] = mapped_column(String(255))
+    app_password_enc: Mapped[str] = mapped_column(Text, default="")
+    imap_host: Mapped[str] = mapped_column(String(120), default="imap.gmail.com")
+    is_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_poll_at: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
