@@ -112,3 +112,11 @@ Set `VITE_API_URL=http://localhost:8000` in the panel `.env` files.
 `merchant-panel/login.html` is the FAMWAY sign-in / create-account page (flip animation). "Keep me signed in" keeps the session after the browser
 closes; unchecked, it ends with the tab. Sign-up asks for full name, email and password. There is no email service, so "Forgot?" tells the merchant
 to ask the admin, who can reset a password from the admin panel. Two-factor login is not included.
+
+## Checkout designs and QR logo
+- Three customer checkout designs (`pay-1.html`, `pay-2.html`, `pay-3.html`). The merchant picks one in Profile > Checkout page design and it applies to all
+  of their payment links. `/pay/<id>` looks up the choice and opens the right page. Each design has a preview (`?preview=1`).
+  Design 2 draws a rounded-dot QR in the browser (qr-code-styling from jsDelivr) and falls back to the server QR if the CDN is blocked.
+- QR centre logo: none, one of 7 built-in logos (bolt, rupee, shop, wallet, heart, star, store initial) or the merchant's own upload. A live QR preview is shown.
+- The customer page shows only the last 4 characters of the UPI reference, never the payer's name. New payment-link ids are longer (12 hex characters).
+- The brand logos/texts that came with the design files were not shipped; the page shows the merchant's store name and `VITE_BRAND_NAME`.

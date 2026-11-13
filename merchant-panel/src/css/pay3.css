@@ -1,0 +1,733 @@
+
+    :root {
+      --bg-gradient-1: #eef2ff;
+      --bg-gradient-2: #f8fafc;
+      --bg-gradient-3: #ecfdf5;
+      --card-bg: #ffffff;
+      --border-subtle: rgba(15, 23, 42, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.1);
+      --emerald: #10b981;
+      --emerald-dark: #059669;
+      --emerald-soft: rgba(16, 185, 129, 0.12);
+      --amber: #f59e0b;
+      --danger: #ef4444;
+
+      --shadow-card:
+        0 20px 40px -15px rgba(15, 23, 42, 0.08),
+        0 4px 16px -4px rgba(15, 23, 42, 0.04),
+        0 0 0 1px rgba(15, 23, 42, 0.05);
+      --shadow-qr:
+        0 10px 25px -5px rgba(15, 23, 42, 0.06),
+        0 0 0 1px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px 84px;
+      color: var(--text-primary);
+      background:
+        radial-gradient(circle at 15% 15%, var(--bg-gradient-1) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, var(--bg-gradient-3) 0%, transparent 45%),
+        var(--bg-gradient-2);
+      overflow-x: hidden;
+      animation: bgFadeIn 0.8s ease-out forwards;
+    }
+
+    @keyframes bgFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Confetti Canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* Main Checkout Card */
+    .checkout-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border-radius: 28px;
+      box-shadow: var(--shadow-card);
+      padding: 28px 24px 24px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(26px) scale(0.94);
+      animation: cardEntrance 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
+    }
+
+    @keyframes cardEntrance {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Staggered Entrance Items */
+    .stagger-1,
+    .stagger-2,
+    .stagger-3 {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    .stagger-1 {
+      animation: itemFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.22s forwards;
+    }
+    .stagger-2 {
+      animation: itemFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.34s forwards;
+    }
+    .stagger-3 {
+      animation: itemFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.46s forwards;
+    }
+
+    @keyframes itemFadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* View Transitions (QR View <-> Success View) */
+    .view-container {
+      transition: opacity 0.28s ease, transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .view-container.is-leaving {
+      opacity: 0;
+      transform: scale(0.94);
+      filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Store Header */
+    .store-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .store-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .store-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+
+    .store-meta {
+      min-width: 0;
+    }
+
+    .store-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .store-name {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .verified-badge {
+      width: 17px;
+      height: 17px;
+      color: #0ea5e9;
+      flex-shrink: 0;
+    }
+
+    .order-id {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .amount-pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 16px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+
+    /* QR Section */
+    .qr-section {
+      padding: 24px 0 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .qr-wrapper {
+      position: relative;
+      width: 236px;
+      height: 236px;
+      padding: 18px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: var(--shadow-qr);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* One-Time Laser Scan Sweep on Open */
+    .scan-sweep {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      height: 36px;
+      background: linear-gradient(180deg, rgba(79, 70, 229, 0) 0%, rgba(79, 70, 229, 0.2) 100%);
+      border-bottom: 2px solid var(--accent);
+      top: -40px;
+      pointer-events: none;
+      opacity: 0;
+      animation: laserSweep 1.35s cubic-bezier(0.4, 0, 0.2, 1) 0.55s forwards;
+    }
+
+    @keyframes laserSweep {
+      0% { top: 10px; opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { top: 205px; opacity: 0; }
+    }
+
+    #qr-render-target {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #qr-render-target svg,
+    #qr-render-target img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    /* Expired QR Overlay */
+    .expired-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 5;
+    }
+
+    .expired-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .expired-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--danger);
+    }
+
+    .btn-refresh {
+      background: var(--text-primary);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .btn-refresh:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+    }
+
+    /* Scan With Any UPI App Label & Save QR Button */
+    .upi-scan-label {
+      margin-top: 16px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .save-qr-btn {
+      margin-top: 14px;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    }
+
+    .save-qr-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(79, 70, 229, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .save-qr-btn:active {
+      transform: translateY(0);
+    }
+
+    .save-qr-btn.saved {
+      background: var(--emerald-soft);
+      color: var(--emerald-dark);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    /* Expiration Date & Live Timer Box */
+    .expiry-box {
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+
+    .expiry-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .expiry-date-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .expiry-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .expiry-exact {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+
+    .timer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      background: var(--emerald-soft);
+      color: var(--emerald-dark);
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .timer-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: blinkDot 1.4s ease-in-out infinite;
+    }
+
+    @keyframes blinkDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .timer-pill.warning {
+      background: rgba(245, 158, 11, 0.14);
+      color: #b45309;
+    }
+
+    .timer-pill.danger {
+      background: rgba(239, 68, 68, 0.14);
+      color: #b91c1c;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--emerald);
+      border-radius: 999px;
+      transition: width 0.5s linear, background-color 0.4s ease;
+    }
+
+    .progress-fill.warning { background: var(--amber); }
+    .progress-fill.danger { background: var(--danger); }
+
+    .security-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* =========================================
+       CELEBRATORY PAYMENT SUCCESS STATE
+       ========================================= */
+    .success-view {
+      text-align: center;
+      padding: 12px 4px 4px;
+    }
+
+    .success-hero {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      margin: 4px auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Radial Ripple Rings behind Checkmark */
+    .ripple-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid var(--emerald);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .success-view.active .ripple-ring.r1 {
+      animation: rippleOut 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+    }
+
+    .success-view.active .ripple-ring.r2 {
+      animation: rippleOut 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+    }
+
+    @keyframes rippleOut {
+      0% {
+        transform: scale(0.8);
+        opacity: 0.65;
+      }
+      100% {
+        transform: scale(1.85);
+        opacity: 0;
+      }
+    }
+
+    .checkmark-badge {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 14px 30px -6px rgba(16, 185, 129, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: scale(0.6);
+      opacity: 0;
+    }
+
+    .success-view.active .checkmark-badge {
+      animation: badgeSpring 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s forwards;
+    }
+
+    @keyframes badgeSpring {
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .checkmark-svg {
+      width: 52px;
+      height: 52px;
+    }
+
+    .check-circle {
+      stroke: rgba(255, 255, 255, 0.35);
+      stroke-width: 3;
+      fill: none;
+      stroke-dasharray: 151;
+      stroke-dashoffset: 151;
+    }
+
+    .success-view.active .check-circle {
+      animation: drawStroke 0.55s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
+    }
+
+    .check-path {
+      stroke: #ffffff;
+      stroke-width: 4.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke-dasharray: 42;
+      stroke-dashoffset: 42;
+    }
+
+    .success-view.active .check-path {
+      animation: drawStroke 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) 0.48s forwards;
+    }
+
+    @keyframes drawStroke {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    .success-stagger {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .success-view.active .s-1 {
+      animation: itemFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
+    }
+    .success-view.active .s-2 {
+      animation: itemFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.48s forwards;
+    }
+    .success-view.active .s-3 {
+      animation: itemFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
+    }
+
+    .success-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .success-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .receipt-card {
+      margin-top: 22px;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 16px;
+      text-align: left;
+    }
+
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 13px;
+    }
+
+    .receipt-row:not(:last-child) {
+      border-bottom: 1px dashed rgba(15, 23, 42, 0.08);
+    }
+
+    .receipt-key {
+      color: var(--text-secondary);
+    }
+
+    .receipt-val {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .receipt-val.amount {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--emerald-dark);
+    }
+
+    .redirect-box {
+      margin-top: 20px;
+    }
+
+    .redirect-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .redirect-track {
+      width: 100%;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .redirect-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--emerald);
+      border-radius: 999px;
+    }
+
+    .success-view.active .redirect-fill {
+      animation: redirectProgress 4s linear 0.7s forwards;
+    }
+
+    @keyframes redirectProgress {
+      to { width: 100%; }
+    }
+
+    /* =========================================
+       PREVIEW / TEST TOOLBAR (Remove in Prod)
+       ========================================= */
+    .preview-bar {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      z-index: 40;
+      max-width: calc(100vw - 24px);
+    }
+
+    .preview-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      padding: 0 6px;
+      white-space: nowrap;
+    }
+
+    .preview-btn {
+      border: none;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .preview-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .preview-btn.success {
+      background: var(--emerald);
+      color: #fff;
+    }
+
+    .preview-btn.reset {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+  
+/* ---- added for the live checkout ---- */
+.brand-name { font-weight: 800; font-size: 19px; letter-spacing: -0.3px; color: #0f172a; min-height: 28px; display: flex; align-items: center; }
+.upi-open { display: inline-flex; align-items: center; justify-content: center; margin: 0 0 14px; font-size: 13px; font-weight: 700; color: #1d4ed8; text-decoration: none; }
+.support-link { display: block; text-align: center; margin-top: 10px; font-size: 12.5px; font-weight: 600; color: #1d4ed8; text-decoration: none; }
+.state-msg { border-left: 4px solid #f59e0b; background: #fffbeb; color: #78350f; padding: 14px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600; margin-bottom: 12px; }
+.state-msg.bad { border-color: #ef4444; background: #fef2f2; color: #7f1d1d; }
+.state-msg button { margin-top: 10px; display: inline-flex; background: #2563eb; color: #fff; border: 0; border-radius: 9px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.return-btn { display: inline-block; margin-top: 12px; background: #047857; color: #fff; padding: 9px 16px; border-radius: 9px; font-weight: 700; font-size: 13px; text-decoration: none; }
+.preview-bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); background: #0f172a; color: #fff; border-radius: 999px; padding: 6px 8px 6px 14px; display: flex; gap: 8px; align-items: center; font: 600 12px Inter, sans-serif; z-index: 50; }
+.preview-bar button { border: 0; border-radius: 999px; padding: 7px 12px; font: 600 12px Inter, sans-serif; cursor: pointer; background: #1e293b; color: #e2e8f0; }
+.preview-bar button.on { background: #fff; color: #0f172a; }

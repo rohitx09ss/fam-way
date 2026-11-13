@@ -16,7 +16,9 @@ from ..gmail_client import test_connection
 from ..models import ReceivingAccount
 from ..qr import process_avatar
 from pydantic import EmailStr
-from ..services import (EXPIRY, IST, create_link, link_state, merchant_code, pay_url, resolve_active, roll_api_key)
+from ..logos import PRESETS, initial_of, preset_b64
+from ..services import (EXPIRY, IST, create_link, effective_logo_choice, link_state, logo_b64_for, merchant_code,
+                        pay_url, resolve_active, roll_api_key)
 from ..webhooks import enqueue_test, ensure_secret, validate_url
 
 router = APIRouter(prefix="/merchant", tags=["merchant-dashboard"])
@@ -64,7 +66,8 @@ def _me(db, user: User) -> dict:
     s = db.scalar(select(MerchantSettings).where(MerchantSettings.user_id == user.id))
     return {"id": user.id, "merchant_id": merchant_code(user.id), "email": user.email, "name": user.name or "",
             "phone": user.phone or "", "store_name": (s.store_name if s else "") or "",
-            "support_link": user.support_link or "",
+            "support_link": user.support_link or "", "logo_choice": effective_logo_choice(user),
+            "checkout_theme": user.checkout_theme if user.checkout_theme in (1, 2, 3) else 1,
             "avatar": ("data:image/png;base64," + user.avatar_b64) if user.avatar_b64 else None,
             "created_at": user.created_at.isoformat()}
 
@@ -320,6 +323,7 @@ class AvatarIn(BaseModel):
 def set_avatar(body: AvatarIn, user=Depends(merchant_user), db=Depends(get_db)):
     try:
         user.avatar_b64 = process_avatar(body.image)
+        user.logo_choice = "custom"
     except ValueError as exc:
         raise HTTPException(422, str(exc))
     audit(db, user.email, "avatar.set", f"user:{user.id}")
@@ -330,6 +334,8 @@ def set_avatar(body: AvatarIn, user=Depends(merchant_user), db=Depends(get_db)):
 @router.delete("/avatar")
 def clear_avatar(user=Depends(merchant_user), db=Depends(get_db)):
     user.avatar_b64 = None
+    if (user.logo_choice or "custom") == "custom":
+        user.logo_choice = "none"
     db.commit()
     return _me(db, user)
 
@@ -478,3 +484,55 @@ def test_account(aid: int, user=Depends(merchant_user), db=Depends(get_db)):
         raise HTTPException(400, "No app password saved for this account")
     ok, msg = test_connection(a.imap_host, a.gmail_address, decrypt_secret(a.app_password_enc))
     return {"ok": ok, "message": msg}
+
+
+# ---------------- QR logo choice + checkout design ----------------
+class LogoChoiceIn(BaseModel):
+    choice: str
+
+
+class ThemeIn(BaseModel):
+    theme: int = Field(ge=1, le=3)
+
+
+def _valid_choice(user: User, choice: str) -> bool:
+    if choice == "none":
+        return True
+    if choice == "custom":
+        return bool(user.avatar_b64)
+    return choice.startswith("preset:") and choice[7:] in PRESETS
+
+
+@router.get("/logo-options")
+def logo_options(user=Depends(merchant_user), db=Depends(get_db)):
+    s = db.scalar(select(MerchantSettings).where(MerchantSettings.user_id == user.id))
+    initial = initial_of((s.store_name if s else "") or user.name or user.email)
+    return {"choice": effective_logo_choice(user),
+            "custom": ("data:image/png;base64," + user.avatar_b64) if user.avatar_b64 else None,
+            "presets": [{"id": k, "label": v, "data_url": "data:image/png;base64," + preset_b64(k, initial)} for k, v in PRESETS.items()]}
+
+
+@router.put("/logo-choice")
+def set_logo_choice(body: LogoChoiceIn, user=Depends(merchant_user), db=Depends(get_db)):
+    if not _valid_choice(user, body.choice):
+        raise HTTPException(422, "Upload a logo first, or pick one of the built-in logos")
+    user.logo_choice = body.choice
+    audit(db, user.email, "logo.choice", f"user:{user.id}", body.choice)
+    db.commit()
+    return _me(db, user)
+
+
+@router.get("/qr-preview")
+def qr_preview(choice: str = "", user=Depends(merchant_user), db=Depends(get_db)):
+    choice = choice or effective_logo_choice(user)
+    if not _valid_choice(user, choice):
+        raise HTTPException(422, "Invalid logo")
+    return {"qr": qr_data_url("upi://pay?pa=demo@fam&pn=Preview&am=1.00&cu=INR", logo_b64_for(db, user, choice))}
+
+
+@router.put("/checkout-theme")
+def set_theme(body: ThemeIn, user=Depends(merchant_user), db=Depends(get_db)):
+    user.checkout_theme = body.theme
+    audit(db, user.email, "checkout.theme", f"user:{user.id}", str(body.theme))
+    db.commit()
+    return _me(db, user)

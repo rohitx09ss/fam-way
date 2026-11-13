@@ -66,3 +66,16 @@ html, body { font-family: Poppins, -apple-system, "Segoe UI", Roboto, sans-serif
 .docs-code { background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 14px; font-size: 12.5px; overflow: auto; white-space: pre; margin: 8px 0 16px; }
 .docs h3 { margin: 22px 0 6px; font-size: 15px; } .docs p { font-size: 13.5px; color: var(--color-ink-secondary); margin: 4px 0; }
 .docs code.i { background: #eef2f7; padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+/* profile: design + logo pickers */
+.tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; margin-top: 12px; }
+.tile { border: 1.5px solid var(--color-hairline); border-radius: 12px; padding: 10px; background: #fff; cursor: pointer; text-align: left; font: inherit; color: inherit; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.tile:hover { transform: translateY(-1px); }
+.tile.sel { border-color: var(--blue-600); box-shadow: 0 0 0 3px rgba(37, 99, 235, .15); }
+.tile img { width: 52px; height: 52px; object-fit: contain; display: block; margin-bottom: 6px; }
+.tile .nm { font-size: 12.5px; font-weight: 600; display: block; }
+.tile:disabled { opacity: .5; cursor: default; transform: none; }
+.theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.theme-grid .tile { padding: 8px; } .theme-grid svg { width: 100%; height: auto; display: block; margin-bottom: 6px; border-radius: 8px; background: #f1f5f9; }
+.theme-grid small { color: var(--color-ink-mute); font-size: 11.5px; display: block; }
+@media (max-width: 520px) { .theme-grid { grid-template-columns: 1fr; } }
+.qr-prev { width: 150px; height: 150px; border: 1px solid var(--color-hairline); border-radius: 12px; padding: 6px; image-rendering: pixelated; background: #fff; }

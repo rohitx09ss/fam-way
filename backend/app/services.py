@@ -8,6 +8,7 @@ from .audit import audit
 from .config import settings as cfg
 from .models import (PS, ApiKey, ApiUsage, MerchantSettings, PaymentLink,
                      PaymentRequest, ReceivingAccount, User, utcnow)
+from .logos import PRESETS, initial_of, preset_b64
 from .qr import build_upi_uri
 
 IST = timezone(timedelta(hours=5, minutes=30))
@@ -60,7 +61,7 @@ def create_payment_request(db, merchant_id: int, s: MerchantSettings, amount_pai
 def create_link(db, merchant_id: int, amount_paise: int, ttl_seconds: int, customer_name: str | None = None,
                 order_id: str | None = None, redirect_url: str | None = None, source: str = "dashboard") -> PaymentLink:
     now = utcnow()
-    link = PaymentLink(slug="pl_" + secrets.token_hex(4).upper(), merchant_id=merchant_id, amount_paise=amount_paise,
+    link = PaymentLink(slug="pl_" + secrets.token_hex(6).upper(), merchant_id=merchant_id, amount_paise=amount_paise,
                        customer_name=customer_name or None, order_id=order_id or None,
                        redirect_url=redirect_url or None, source=source,
                        expires_at=now + timedelta(seconds=ttl_seconds), created_at=now)
@@ -138,3 +139,24 @@ def record_api_use(db, key: ApiKey) -> None:
         row.count += 1
     else:
         db.add(ApiUsage(merchant_id=key.merchant_id, day=day, count=1))
+
+
+# ---- QR centre logo ----
+def effective_logo_choice(user: User) -> str:
+    return user.logo_choice or ("custom" if user.avatar_b64 else "none")
+
+
+def logo_b64_for(db, user: User | None, choice: str | None = None) -> str | None:
+    """Base64 PNG to place in the centre of this merchant's QR codes (or None)."""
+    if user is None:
+        return None
+    choice = choice or effective_logo_choice(user)
+    if choice == "none":
+        return None
+    if choice.startswith("preset:"):
+        pid = choice[7:]
+        if pid not in PRESETS:
+            return None
+        s = db.scalar(select(MerchantSettings).where(MerchantSettings.user_id == user.id))
+        return preset_b64(pid, initial_of((s.store_name if s else "") or user.name or user.email))
+    return user.avatar_b64  # custom

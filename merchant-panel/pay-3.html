@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+
+  <main class="checkout-card" id="checkout-card">
+    <!-- =====================================
+         VIEW 1: ACTIVE QR PAYMENT VIEW
+         ===================================== -->
+    <div class="state-msg" id="noticeMsg" hidden></div>
+
+    <div id="qr-view" class="view-container">
+      <!-- 1. Store Header -->
+      <header class="store-header stagger-1">
+        <div class="store-identity">
+          <div class="store-avatar" id="store-avatar">NS</div>
+          <div class="store-meta">
+            <div class="store-name-row">
+              <h1 class="store-name" id="store-name">Nova Studio Store</h1>
+              <svg class="verified-badge" viewBox="0 0 24 24" fill="currentColor" aria-label="Verified Merchant">
+                <path d="M12 2L14.8 4.2L18.4 3.9L19.6 7.3L22.6 9.3L21.7 12.8L23.2 16.1L20.4 18.4L19.8 22L16.2 21.8L13.6 24L10.4 22.4L6.9 23.3L5.2 20.1L1.7 19.3L2.1 15.7L0 12.8L2.3 10L1.9 6.4L5.3 5.2L7.3 2.2L10.8 3.1L12 2ZM10.3 16.2L17.1 9.4L15.7 8L10.3 13.4L7.8 10.9L6.4 12.3L10.3 16.2Z"/>
+              </svg>
+            </div>
+            <div class="order-id" id="order-id">Order #ORD-89421</div>
+          </div>
+        </div>
+        <div class="amount-pill" id="amount-display">₹1,499.00</div>
+      </header>
+
+      <!-- 2. QR Code Container -->
+      <section class="qr-section stagger-2">
+        <div class="qr-wrapper" id="qr-wrapper">
+          <div class="scan-sweep"></div>
+
+          <div id="qr-render-target" aria-label="Payment QR Code"></div>
+
+          <div class="expired-overlay" id="expired-overlay">
+            <div class="expired-title">QR Code Expired</div>
+            <p style="font-size: 12px; color: var(--text-secondary);">For security, this payment session timed out.</p>
+            <button type="button" class="btn-refresh" id="btn-refresh-qr">Generate New QR</button>
+          </div>
+        </div>
+
+        <div class="upi-scan-label">SCAN WITH ANY UPI APP</div>
+
+        <button type="button" class="save-qr-btn" id="save-qr-btn">
+          <svg id="save-qr-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="save-qr-text">Save QR</span>
+        </button>
+        <a class="upi-open" id="upiBtn" hidden>Open in UPI app</a>
+      </section>
+
+      <!-- 3. Expiration Date & Countdown -->
+      <section class="stagger-3">
+        <div class="expiry-box">
+          <div class="expiry-top">
+            <div class="expiry-date-block">
+              <span class="expiry-label">Expires At</span>
+              <span class="expiry-exact" id="expiry-date-text">--</span>
+            </div>
+            <div class="timer-pill" id="timer-pill">
+              <span class="timer-dot"></span>
+              <span id="countdown-text">05:00</span>
+            </div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <footer class="security-footer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2  "></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>Secured by <span id="brandFoot"></span></span>
+        </footer>
+        <a class="support-link" id="supportLink" hidden target="_blank" rel="noopener">Need help? Contact the merchant →</a>
+      </section>
+    </div>
+
+    <!-- =====================================
+         VIEW 2: CELEBRATORY SUCCESS VIEW
+         ===================================== -->
+    <div id="success-view" class="view-container success-view hidden" aria-live="polite">
+      <div class="success-hero">
+        <span class="ripple-ring r1"></span>
+        <span class="ripple-ring r2"></span>
+        <div class="checkmark-badge">
+          <svg class="checkmark-svg" viewBox="0 0 56 56">
+            <circle class="check-circle" cx="28" cy="28" r="24"></circle>
+            <path class="check-path" d="M17 28.5L24.5 36L39.5 20.5"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="success-stagger s-1">
+        <h2 class="success-title">Payment Successful!</h2>
+        <p class="success-subtitle">Paid to <strong id="success-store-name">Nova Studio Store</strong></p>
+      </div>
+
+      <div class="receipt-card success-stagger s-2">
+        <div class="receipt-row">
+          <span class="receipt-key">Amount Paid</span>
+          <span class="receipt-val amount" id="success-amount">₹1,499.00</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-key">Transaction ID</span>
+          <span class="receipt-val" id="success-txn-id">TXN-90482716</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-key">Order ID</span>
+          <span class="receipt-val" id="success-order-id">#ORD-89421</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-key">Paid On</span>
+          <span class="receipt-val" id="success-time">--</span>
+        </div>
+      </div>
+
+      <div class="redirect-box success-stagger s-3">
+        <div class="redirect-text" id="redirect-label">Redirecting back to store...</div>
+        <div class="redirect-track">
+          <div class="redirect-fill"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/src/pages/pay-3.js"></script>
+</body>
+</html>

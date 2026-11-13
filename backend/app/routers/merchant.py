@@ -11,7 +11,7 @@ from ..deps import merchant_user
 from ..gmail_client import test_connection
 from ..matching import assign_event, manual_decision
 from ..models import PS, EmailEvent, MerchantSettings, PaymentRequest, utcnow
-from ..services import create_payment_request, resolve_active
+from ..services import create_payment_request, logo_b64_for, resolve_active
 from ..schemas import AssignIn, PaymentCreate, SettingsIn, event_out, payment_out
 from ..security import decrypt_secret, encrypt_secret
 
@@ -77,7 +77,7 @@ def create_payment(body: PaymentCreate, user=Depends(merchant_user), db=Depends(
     paise = int((body.amount * 100).to_integral_value())
     p = create_payment_request(db, user.id, s, paise, cfg.qr_expiry_seconds, user.email, account_id=account_id, upi_id=upi)
     db.commit()
-    return payment_out(p, with_qr=True, logo=user.avatar_b64)
+    return payment_out(p, with_qr=True, logo=logo_b64_for(db, user))
 
 
 @router.get("/payments")
@@ -98,7 +98,7 @@ def _own_payment(db, user, pid: int) -> PaymentRequest:
 
 @router.get("/payments/{pid}")
 def get_payment(pid: int, user=Depends(merchant_user), db=Depends(get_db)):
-    return payment_out(_own_payment(db, user, pid), with_qr=True, logo=user.avatar_b64)
+    return payment_out(_own_payment(db, user, pid), with_qr=True, logo=logo_b64_for(db, user))
 
 
 @router.post("/payments/{pid}/confirm")

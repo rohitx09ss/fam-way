@@ -24,7 +24,8 @@ def ensure_columns() -> None:
                              "customer_name": "VARCHAR(100)", "link_id": "INTEGER", "account_id": "INTEGER"},
         "email_events": {"payer_name": "VARCHAR(120)", "utr": "VARCHAR(64)", "account_id": "INTEGER"},
         "users": {"name": "VARCHAR(120)", "phone": "VARCHAR(20)", "webhook_secret": "VARCHAR(80)",
-                  "support_link": "VARCHAR(300)", "avatar_b64": "TEXT"},
+                  "support_link": "VARCHAR(300)", "avatar_b64": "TEXT",
+                  "logo_choice": "VARCHAR(30)", "checkout_theme": "INTEGER DEFAULT 1"},
         "merchant_settings": {"active_account_id": "INTEGER"},
     }
     insp = inspect(engine)

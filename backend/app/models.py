@@ -82,7 +82,9 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     webhook_secret: Mapped[str | None] = mapped_column(String(80), nullable=True)
     support_link: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    avatar_b64: Mapped[str | None] = mapped_column(Text, nullable=True)  # small PNG shown inside QR codes
+    avatar_b64: Mapped[str | None] = mapped_column(Text, nullable=True)  # uploaded custom logo (PNG)
+    logo_choice: Mapped[str | None] = mapped_column(String(30), nullable=True)  # none | custom | preset:<id> (None = auto)
+    checkout_theme: Mapped[int | None] = mapped_column(Integer, default=1, nullable=True)  # 1, 2 or 3
 
 
 class MerchantSettings(Base):
