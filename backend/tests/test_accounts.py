@@ -66,7 +66,7 @@ def test_logo_choice_resolution():
     from app.services import effective_logo_choice, logo_b64_for
     import types
     u = types.SimpleNamespace(id=1, name="Ro", email="a@b.c", logo_choice=None, avatar_b64=None)
-    assert effective_logo_choice(u) == "none"
+    assert effective_logo_choice(u) == "preset:fpay"
     u.avatar_b64 = "QUJD"
     assert effective_logo_choice(u) == "custom"
     u.logo_choice = "none"

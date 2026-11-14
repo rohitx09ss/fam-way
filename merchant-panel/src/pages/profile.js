@@ -17,8 +17,8 @@ page.innerHTML = `${head("Profile", "Your account, checkout page and alerts.")}
       <label class="form-label">Full name</label><input class="form-input" id="name" maxlength="120" />
       <label class="form-label" style="margin-top:12px">Phone number</label><input class="form-input" id="phone" maxlength="20" inputmode="tel" />
       <label class="form-label" style="margin-top:12px">Store name</label><input class="form-input" id="store" maxlength="120" />
-      <label class="form-label" style="margin-top:12px">Support / contact link</label><input class="form-input" id="support" maxlength="300" placeholder="https://wa.me/91XXXXXXXXXX  or  mailto:help@shop.com" />
-      <p class="muted small" style="margin:6px 0 0">Shown to customers on your checkout page as "Need help?".</p>
+      <label class="form-label" style="margin-top:12px">WhatsApp number (customer support)</label><input class="form-input" id="wa" maxlength="20" inputmode="tel" placeholder="+91 98765 43210" />
+      <p class="muted small" style="margin:6px 0 0">Customers see a "Need help? WhatsApp the merchant" button on your checkout page. Enter the number with country code (10-digit numbers are treated as India +91).</p>
       <div id="pm" class="err-text"></div><div class="row" style="margin-top:14px"><button class="btn btn-primary">Save changes</button></div></form>
 
     <div class="card"><div class="card-title">${icon("layout-dashboard", 18)} <span>Checkout page design</span></div>
@@ -52,7 +52,7 @@ let me = null, opts = null;
 function fillMe(m) {
   me = m;
   $("mid").textContent = m.merchant_id; $("em").textContent = m.email; $("since").textContent = day(m.created_at);
-  $("name").value = m.name; $("phone").value = m.phone; $("store").value = m.store_name; $("support").value = m.support_link;
+  $("name").value = m.name; $("phone").value = m.phone; $("store").value = m.store_name; $("wa").value = m.whatsapp ? "+" + m.whatsapp : "";
   document.querySelectorAll("#themes .tile").forEach((t) => t.classList.toggle("sel", Number(t.dataset.t) === m.checkout_theme));
   const logoParam = m.logo_choice.startsWith("preset:") ? m.logo_choice : "none";
   document.querySelectorAll("[data-prev]").forEach((a) => { a.href = `/pay-${a.dataset.prev}.html?preview=1&logo=${encodeURIComponent(logoParam)}`; });
@@ -77,7 +77,7 @@ loadAll().catch((e) => toast(e.message, true));
 const remember = (m) => setSession(getToken(), { ...getUser(), ...m, avatar: undefined });
 
 $("pf").addEventListener("submit", async (e) => { e.preventDefault();
-  try { const m = await api("/merchant/profile", { method: "PUT", body: { name: $("name").value, phone: $("phone").value, store_name: $("store").value, support_link: $("support").value } });
+  try { const m = await api("/merchant/profile", { method: "PUT", body: { name: $("name").value, phone: $("phone").value, store_name: $("store").value, whatsapp: $("wa").value } });
     remember(m); fillMe(m); $("pm").className = "ok-text"; $("pm").textContent = "Saved."; }
   catch (ex) { $("pm").className = "err-text"; $("pm").textContent = ex.message; } });
 

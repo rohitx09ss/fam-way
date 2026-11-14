@@ -1,6 +1,6 @@
 // Network + session helpers with no CSS side effects (used by the login page and by core.js).
 export const API = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
-export const BRAND = import.meta.env.VITE_BRAND_NAME || "FAMWAY";
+export const BRAND = import.meta.env.VITE_BRAND_NAME || "F PAY";
 const TK = "pg_token", UK = "pg_user";
 
 // "Keep me signed in" -> localStorage; otherwise the session ends when the browser tab closes.

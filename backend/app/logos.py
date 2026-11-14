@@ -2,6 +2,7 @@
 import base64
 import io
 from functools import lru_cache
+from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -9,9 +10,19 @@ S = 4  # supersampling factor
 INK, BLUE, GREEN = (15, 23, 42, 255), (37, 99, 235, 255), (16, 185, 129, 255)
 
 PRESETS = {
+    "fpay": "F PAY",
     "bolt": "Bolt", "rupee": "Rupee", "store": "Shop", "wallet": "Wallet",
     "heart": "Heart", "star": "Star", "initial": "Initial letter",
 }
+
+
+def _fpay() -> Image.Image:
+    icon = Image.open(Path(__file__).parent / "assets" / "fpay-icon.png").convert("RGBA")
+    scale = min(160 * S / icon.width, 160 * S / icon.height)  # thumbnail() never enlarges, so scale explicitly
+    icon = icon.resize((round(icon.width * scale), round(icon.height * scale)), Image.LANCZOS)
+    out = Image.new("RGBA", (160 * S, 160 * S), (0, 0, 0, 0))
+    out.paste(icon, ((160 * S - icon.width) // 2, (160 * S - icon.height) // 2), icon)
+    return out
 
 
 def _pts(points):
@@ -82,9 +93,11 @@ def _initial(d, letter):
 def preset_b64(preset_id: str, initial: str = "M") -> str:
     if preset_id not in PRESETS:
         raise ValueError("Unknown logo")
-    img = Image.new("RGBA", (160 * S, 160 * S), (0, 0, 0, 0))
+    img = _fpay() if preset_id == "fpay" else Image.new("RGBA", (160 * S, 160 * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    if preset_id == "initial":
+    if preset_id == "fpay":
+        pass
+    elif preset_id == "initial":
         _initial(d, (initial or "M")[:1].upper())
     else:
         {"bolt": _bolt, "rupee": _rupee, "store": _store, "wallet": _wallet, "heart": _heart, "star": _star}[preset_id](d)

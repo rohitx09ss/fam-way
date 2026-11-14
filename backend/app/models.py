@@ -81,7 +81,8 @@ class User(Base):
     name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     webhook_secret: Mapped[str | None] = mapped_column(String(80), nullable=True)
-    support_link: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    support_link: Mapped[str | None] = mapped_column(String(300), nullable=True)  # legacy, superseded by whatsapp
+    whatsapp: Mapped[str | None] = mapped_column(String(20), nullable=True)  # digits with country code
     avatar_b64: Mapped[str | None] = mapped_column(Text, nullable=True)  # uploaded custom logo (PNG)
     logo_choice: Mapped[str | None] = mapped_column(String(30), nullable=True)  # none | custom | preset:<id> (None = auto)
     checkout_theme: Mapped[int | None] = mapped_column(Integer, default=1, nullable=True)  # 1, 2 or 3

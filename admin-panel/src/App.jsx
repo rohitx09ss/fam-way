@@ -35,7 +35,7 @@ export default function App() {
   return (
     <div className="shell">
       <aside className="side">
-        <div className="brand">Admin panel<small>{auth.email}</small></div>
+        <div className="brand"><img src="/fpay-logo.png" alt="F PAY" style={{ height: 32, width: "auto", display: "block" }} /><small>Admin · {auth.email}</small></div>
         {NAV.map(([id, label, Icon]) => (
           <button key={id} className={`nav ${page === id ? "on" : ""}`} onClick={() => setPage(id)}>
             <Icon size={18} strokeWidth={1.8} /> {label}

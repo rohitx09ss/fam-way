@@ -7,7 +7,7 @@ from sqlalchemy import select
 from ..db import get_db
 from ..models import PS, MerchantSettings, PaymentLink, PaymentRequest, STATUS_LABELS, User, utcnow
 from ..qr import qr_data_url
-from ..services import link_state, logo_b64_for, start_session
+from ..services import link_state, logo_b64_for, start_session, wa_link
 
 router = APIRouter(prefix="/public", tags=["public checkout"])
 _hits: dict[str, list[float]] = defaultdict(list)  # per-process; use Redis if you scale out
@@ -50,7 +50,7 @@ def _view(db, link: PaymentLink, cur: PaymentRequest | None, status: str) -> dic
     return {"slug": link.slug, "store_name": (s.store_name if s else "") or "Merchant", "amount": link.amount_paise / 100,
             "customer_name": link.customer_name, "status": status, "link_expires_at": link.expires_at.isoformat(),
             "redirect_url": link.redirect_url if status == "PAID" else None, "payment": pay,
-            "support_link": (owner.support_link if owner else None) or None,
+            "support_link": (wa_link(owner.whatsapp, link.slug) if owner and owner.whatsapp else (owner.support_link if owner else None)) or None,
             "theme": (owner.checkout_theme if owner and owner.checkout_theme in (1, 2, 3) else 1),
             "logo": ("data:image/png;base64," + logo) if logo else None,
             "paid": _paid(cur) if status == "PAID" and cur else None}

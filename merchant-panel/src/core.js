@@ -143,12 +143,12 @@ export function shell(active) {
   document.body.innerHTML = `
   <div class="dashboard-layout">
     <div class="mobile-header">
-      <a class="brand-row" href="/index.html"><span class="brand-mark">${icon("zap", 17)}</span>${esc(BRAND)}</a>
+      <a class="brand-row" href="/index.html"><img class="brand-logo" src="/fpay-logo.png" alt="${esc(BRAND)}"></a>
       <button class="mobile-menu-btn" id="openSidebar" aria-label="Open menu">${icon("menu", 22)}</button>
     </div>
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header" style="padding:20px 16px 8px"><div style="display:flex;justify-content:space-between;align-items:center">
-        <a class="brand-row" href="/index.html"><span class="brand-mark">${icon("zap", 17)}</span>${esc(BRAND)}</a>
+        <a class="brand-row" href="/index.html"><img class="brand-logo" src="/fpay-logo.png" alt="${esc(BRAND)}"></a>
         <button class="mobile-menu-btn" id="closeSidebar" aria-label="Close menu" style="display:none">${icon("x", 20)}</button></div></div>
       <nav class="sidebar-nav"><div class="sidebar-section-label">Main</div>${NAV.map(item).join("")}
         <div class="sidebar-section-label">Settings</div>${NAV2.map(item).join("")}</nav>

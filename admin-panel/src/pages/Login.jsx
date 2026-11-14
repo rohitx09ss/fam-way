@@ -13,6 +13,7 @@ export default function Login({ onAuth }) {
   return (
     <div className="login">
       <div className="login-art">
+        <img src="/fpay-logo.png" alt="F PAY" style={{ height: 54, width: "auto", display: "block", marginBottom: 22 }} />
         <h1>Run the gateway behind every merchant.</h1>
         <p>Add merchants, watch payment flow across all stores, and read the audit trail.</p>
       </div>

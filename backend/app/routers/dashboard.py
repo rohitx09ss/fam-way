@@ -18,7 +18,7 @@ from ..qr import process_avatar
 from pydantic import EmailStr
 from ..logos import PRESETS, initial_of, preset_b64
 from ..services import (EXPIRY, IST, create_link, effective_logo_choice, link_state, logo_b64_for, merchant_code,
-                        pay_url, resolve_active, roll_api_key)
+                        normalize_whatsapp, pay_url, resolve_active, roll_api_key)
 from ..webhooks import enqueue_test, ensure_secret, validate_url
 
 router = APIRouter(prefix="/merchant", tags=["merchant-dashboard"])
@@ -54,7 +54,7 @@ class ProfileIn(BaseModel):
     name: str = Field(default="", max_length=120)
     phone: str = Field(default="", max_length=20)
     store_name: str = Field(default="", max_length=120)
-    support_link: str = Field(default="", max_length=300)
+    whatsapp: str = Field(default="", max_length=30)
 
 
 class PasswordIn(BaseModel):
@@ -66,7 +66,7 @@ def _me(db, user: User) -> dict:
     s = db.scalar(select(MerchantSettings).where(MerchantSettings.user_id == user.id))
     return {"id": user.id, "merchant_id": merchant_code(user.id), "email": user.email, "name": user.name or "",
             "phone": user.phone or "", "store_name": (s.store_name if s else "") or "",
-            "support_link": user.support_link or "", "logo_choice": effective_logo_choice(user),
+            "whatsapp": user.whatsapp or "", "logo_choice": effective_logo_choice(user),
             "checkout_theme": user.checkout_theme if user.checkout_theme in (1, 2, 3) else 1,
             "avatar": ("data:image/png;base64," + user.avatar_b64) if user.avatar_b64 else None,
             "created_at": user.created_at.isoformat()}
@@ -79,10 +79,11 @@ def me(user=Depends(merchant_user), db=Depends(get_db)):
 
 @router.put("/profile")
 def update_profile(body: ProfileIn, user=Depends(merchant_user), db=Depends(get_db)):
-    link = body.support_link.strip()
-    if link and not link.lower().startswith(("http://", "https://", "mailto:", "tel:")):
-        raise HTTPException(422, "Support link must start with https://, mailto: or tel:")
-    user.name, user.phone, user.support_link = body.name.strip(), body.phone.strip(), (link or None)
+    try:
+        wa = normalize_whatsapp(body.whatsapp)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    user.name, user.phone, user.whatsapp = body.name.strip(), body.phone.strip(), (wa or None)
     s = db.scalar(select(MerchantSettings).where(MerchantSettings.user_id == user.id))
     if not s:
         s = MerchantSettings(user_id=user.id)

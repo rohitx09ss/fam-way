@@ -107,7 +107,7 @@ def deliver_due(db) -> int:
             validate_url(ep.url)
             r = httpx.post(ep.url, content=d.payload, timeout=10, follow_redirects=False, headers={
                 "Content-Type": "application/json", "X-Event": d.event,
-                "X-Signature": sign(user.webhook_secret or "", d.payload), "User-Agent": "upi-gateway-webhook/1.0"})
+                "X-Signature": sign(user.webhook_secret or "", d.payload), "User-Agent": "fpay-webhook/1.0"})
             code, body = r.status_code, r.text[:1000]
             ok = 200 <= code < 300
         except Exception as exc:

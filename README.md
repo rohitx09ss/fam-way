@@ -109,7 +109,7 @@ Set `VITE_API_URL=http://localhost:8000` in the panel `.env` files.
 - New columns and tables are added automatically on start.
 
 ## Login page
-`merchant-panel/login.html` is the FAMWAY sign-in / create-account page (flip animation). "Keep me signed in" keeps the session after the browser
+`merchant-panel/login.html` is the F PAY sign-in / create-account page (flip animation). "Keep me signed in" keeps the session after the browser
 closes; unchecked, it ends with the tab. Sign-up asks for full name, email and password. There is no email service, so "Forgot?" tells the merchant
 to ask the admin, who can reset a password from the admin panel. Two-factor login is not included.
 
@@ -120,3 +120,8 @@ to ask the admin, who can reset a password from the admin panel. Two-factor logi
 - QR centre logo: none, one of 7 built-in logos (bolt, rupee, shop, wallet, heart, star, store initial) or the merchant's own upload. A live QR preview is shown.
 - The customer page shows only the last 4 characters of the UPI reference, never the payer's name. New payment-link ids are longer (12 hex characters).
 - The brand logos/texts that came with the design files were not shipped; the page shows the merchant's store name and `VITE_BRAND_NAME`.
+
+## Branding and support
+- Brand is **F PAY**: the wordmark is used in the sidebar, login page, checkout header and admin panel; the F icon is the favicon and the default QR centre logo.
+  Files: `merchant-panel/public/fpay-logo.png`, `fpay-icon.png` (same in `admin-panel/public`), and `backend/app/assets/fpay-icon.png` for the QR logo.
+- Customer support is a **WhatsApp number** (Profile). It becomes a "Need help? WhatsApp the merchant" button that opens a chat with the order id pre-filled.

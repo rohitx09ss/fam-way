@@ -1,5 +1,7 @@
 import hashlib
+import re
 import secrets
+from urllib.parse import quote
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -13,6 +15,28 @@ from .qr import build_upi_uri
 
 IST = timezone(timedelta(hours=5, minutes=30))
 EXPIRY = {"1m": 60, "5m": 300, "30m": 1800, "1h": 3600, "2h": 7200, "24h": 86400}
+
+
+def normalize_whatsapp(raw: str) -> str:
+    """Digits-only WhatsApp number with country code. 10-digit numbers are treated as Indian (+91)."""
+    s = (raw or "").strip()
+    if not s:
+        return ""
+    plus = s.startswith("+")
+    digits = re.sub(r"\D", "", s)
+    if not plus and digits.startswith("00"):
+        digits, plus = digits[2:], True
+    if not plus and len(digits) == 11 and digits.startswith("0"):
+        digits = digits[1:]
+    if not plus and len(digits) == 10:
+        digits = "91" + digits
+    if not (8 <= len(digits) <= 15) or digits.startswith("0") or (not plus and len(digits) < 11):
+        raise ValueError("Enter your WhatsApp number with country code, e.g. +91 98765 43210")
+    return digits
+
+
+def wa_link(number: str, slug: str) -> str:
+    return f"https://wa.me/{number}?text=" + quote(f"Hi, I need help with my payment (order {slug})")
 
 
 def merchant_code(user_id: int) -> str:
@@ -143,7 +167,7 @@ def record_api_use(db, key: ApiKey) -> None:
 
 # ---- QR centre logo ----
 def effective_logo_choice(user: User) -> str:
-    return user.logo_choice or ("custom" if user.avatar_b64 else "none")
+    return user.logo_choice or ("custom" if user.avatar_b64 else "preset:fpay")
 
 
 def logo_b64_for(db, user: User | None, choice: str | None = None) -> str | None:
